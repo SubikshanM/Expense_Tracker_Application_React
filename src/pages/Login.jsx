@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { authAPI } from '../api/auth';
 import '../styles/Auth.css';
 
-function Login({ onLogin, onSwitchToSignup }) {
+function Login() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -14,8 +16,8 @@ function Login({ onLogin, onSwitchToSignup }) {
     setLoading(true);
 
     try {
-      const data = await authAPI.login(email, password);
-      onLogin(data.user);
+      await authAPI.login(email, password);
+      navigate('/');
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed. Please try again.');
     } finally {
@@ -65,7 +67,7 @@ function Login({ onLogin, onSwitchToSignup }) {
 
         <p className="auth-switch">
           Don't have an account?{' '}
-          <button onClick={onSwitchToSignup} className="link-button">
+          <button onClick={() => navigate('/signup')} className="link-button">
             Sign up
           </button>
         </p>

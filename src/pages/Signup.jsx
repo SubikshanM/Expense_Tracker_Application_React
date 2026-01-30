@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { authAPI } from '../api/auth';
 import '../styles/Auth.css';
 
-function Signup({ onSignup, onSwitchToLogin }) {
+function Signup() {
+  const navigate = useNavigate();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -28,8 +30,8 @@ function Signup({ onSignup, onSwitchToLogin }) {
     setLoading(true);
 
     try {
-      const data = await authAPI.register(email, password, name);
-      onSignup(data.user);
+      await authAPI.register(email, password, name);
+      navigate('/');
     } catch (err) {
       setError(err.response?.data?.message || 'Signup failed. Please try again.');
     } finally {
@@ -104,7 +106,7 @@ function Signup({ onSignup, onSwitchToLogin }) {
 
         <p className="auth-switch">
           Already have an account?{' '}
-          <button onClick={onSwitchToLogin} className="link-button">
+          <button onClick={() => navigate('/login')} className="link-button">
             Login
           </button>
         </p>

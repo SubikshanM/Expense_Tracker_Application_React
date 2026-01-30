@@ -21,6 +21,40 @@ header {
   border-radius: 5px;
 }
 
+.header-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.user-email {
+  font-size: 14px;
+  color: #ddd;
+}
+
+.logout-btn {
+  background: #e74c3c;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.logout-btn:hover {
+  background: #c0392b;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-size: 24px;
+  color: #667eea;
+}
+
 .controls,
 .file-buttons {
   margin-top: 20px;

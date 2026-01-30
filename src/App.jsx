@@ -9,74 +9,106 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+import { authAPI } from "./api/auth";
+import { expenseAPI } from "./api/expenses";
 import "./App.css";
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
 function App() {
+  const [user, setUser] = useState(null);
+  const [isLogin, setIsLogin] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [entries, setEntries] = useState([]);
   const [date, setDate] = useState("");
   const [income, setIncome] = useState("");
   const [expense, setExpense] = useState("");
-  const [fileHandle, setFileHandle] = useState(null);
   const [darkMode, setDarkMode] = useState(false);
+
+  // Check if user is already logged in
+  useEffect(() => {
+    const checkAuth = () => {
+      if (authAPI.isAuthenticated()) {
+        const currentUser = authAPI.getCurrentUser();
+        setUser(currentUser);
+        loadExpenses();
+      }
+      setLoading(false);
+    };
+    checkAuth();
+  }, []);
+
+  // Load expenses from backend
+  const loadExpenses = async () => {
+    try {
+      const data = await expenseAPI.getAll();
+      const sortedExpenses = data.expenses.sort((a, b) => 
+        new Date(a.date) - new Date(b.date)
+      );
+      setEntries(sortedExpenses);
+    } catch (error) {
+      console.error('Failed to load expenses:', error);
+    }
+  };
+
+  const handleLogin = (userData) => {
+    setUser(userData);
+    loadExpenses();
+  };
+
+  const handleSignup = (userData) => {
+    setUser(userData);
+    setEntries([]);
+  };
+
+  const handleLogout = () => {
+    authAPI.logout();
+    setUser(null);
+    setEntries([]);
+  };
+
+  if (loading) {
+    return <div className="loading">Loading...</div>;
+  }
+
+  if (!user) {
+    return isLogin ? (
+      <Login 
+        onLogin={handleLogin} 
+        onSwitchToSignup={() => setIsLogin(false)} 
+      />
+    ) : (
+      <Signup 
+        onSignup={handleSignup} 
+        onSwitchToLogin={() => setIsLogin(true)} 
+      />
+    );
+  }
 
   const handleAddEntry = async () => {
     if (!date) return;
 
-    const newEntry = {
-      date,
-      income: income ? parseFloat(income) : 0,
-      expense: expense ? parseFloat(expense) : 0,
-    };
+    try {
+      const newEntryData = {
+        date,
+        income: income ? parseFloat(income) : 0,
+        expense: expense ? parseFloat(expense) : 0,
+      };
 
-    const updatedEntries = [...entries, newEntry];
-    updatedEntries.sort((a, b) => new Date(a.date) - new Date(b.date));
-    setEntries(updatedEntries);
+      const data = await expenseAPI.add(newEntryData);
+      const updatedEntries = [...entries, data.expense];
+      updatedEntries.sort((a, b) => new Date(a.date) - new Date(b.date));
+      setEntries(updatedEntries);
 
-    if (fileHandle) {
-      const csvData = updatedEntries.map(e =>
-        `${e.date},${e.income},${e.expense}`
-      ).join("\n");
-      const writable = await fileHandle.createWritable();
-      await writable.write("date,income,expense\n" + csvData);
-      await writable.close();
+      setIncome("");
+      setExpense("");
+      setDate("");
+    } catch (error) {
+      console.error('Failed to add expense:', error);
+      alert('Failed to add expense. Please try again.');
     }
-
-    setIncome("");
-    setExpense("");
-    setDate("");
-  };
-
-  const handleCreateCSV = async () => {
-    const handle = await window.showSaveFilePicker({
-      suggestedName: "expenses.csv",
-      types: [{ accept: { "text/csv": [".csv"] } }],
-    });
-
-    setFileHandle(handle);
-    const writable = await handle.createWritable();
-    await writable.write("date,income,expense\n");
-    await writable.close();
-    setEntries([]);
-  };
-
-  const handleOpenCSV = async () => {
-    const [handle] = await window.showOpenFilePicker();
-    setFileHandle(handle);
-
-    const file = await handle.getFile();
-    const text = await file.text();
-    const lines = text.split("\n").slice(1);
-    const loadedEntries = lines
-      .filter(line => line.trim() !== "")
-      .map(line => {
-        const [d, i, e] = line.split(",");
-        return { date: d, income: parseFloat(i), expense: parseFloat(e) };
-      });
-
-    loadedEntries.sort((a, b) => new Date(a.date) - new Date(b.date));
-    setEntries(loadedEntries);
   };
 
   const handleDownloadExcel = () => {
@@ -154,9 +186,15 @@ function App() {
     <div className={`app ${darkMode ? "dark" : ""}`}>
       <header>
         <h1>Expense Tracker</h1>
-        <button onClick={() => setDarkMode(!darkMode)}>
-          {darkMode ? "Light Mode" : "Dark Mode"}
-        </button>
+        <div className="header-controls">
+          <span className="user-email">👤 {user.email}</span>
+          <button onClick={() => setDarkMode(!darkMode)}>
+            {darkMode ? "☀️ Light" : "🌙 Dark"}
+          </button>
+          <button onClick={handleLogout} className="logout-btn">
+            Logout
+          </button>
+        </div>
       </header>
 
       <div className="controls">
@@ -178,7 +216,7 @@ function App() {
           value={expense}
           onChange={(e) => setExpense(e.target.value)}
         />
-        <button onClick={handleAddEntry}>Add Entry</button>
+        <button onClick={handleAddEntry}>➕ Add Entry</button>
       </div>
 
       <div className="file-buttons">

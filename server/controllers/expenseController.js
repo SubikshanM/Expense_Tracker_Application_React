@@ -24,7 +24,7 @@ export const getExpenses = async (req, res) => {
 // Add new expense entry
 export const addExpense = async (req, res) => {
   try {
-    const { date, income, expense, description } = req.body;
+    const { date, income, expense, description, category } = req.body;
 
     // Validation
     if (!date) {
@@ -35,13 +35,13 @@ export const addExpense = async (req, res) => {
     }
 
     const result = await query(
-      'INSERT INTO expenses (user_id, date, income, expense, description) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      'INSERT INTO expenses (user_id, date, income, expense, category) VALUES ($1, $2, $3, $4, $5) RETURNING *',
       [
         req.user.userId,
         date,
         income || 0,
         expense || 0,
-        description || null
+        category || 'Other'
       ]
     );
 
@@ -63,7 +63,7 @@ export const addExpense = async (req, res) => {
 export const updateExpense = async (req, res) => {
   try {
     const { id } = req.params;
-    const { date, income, expense, description } = req.body;
+    const { date, income, expense, description, category } = req.body;
 
     // Check if expense belongs to user
     const checkResult = await query(
@@ -79,8 +79,8 @@ export const updateExpense = async (req, res) => {
     }
 
     const result = await query(
-      'UPDATE expenses SET date = $1, income = $2, expense = $3, description = $4, updated_at = CURRENT_TIMESTAMP WHERE id = $5 AND user_id = $6 RETURNING *',
-      [date, income || 0, expense || 0, description || null, id, req.user.userId]
+      'UPDATE expenses SET date = $1, income = $2, expense = $3, description = $4, category = $5, updated_at = CURRENT_TIMESTAMP WHERE id = $6 AND user_id = $7 RETURNING *',
+      [date, income || 0, expense || 0, description || null, category || 'Other', id, req.user.userId]
     );
 
     res.json({

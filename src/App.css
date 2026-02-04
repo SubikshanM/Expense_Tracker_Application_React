@@ -1004,45 +1004,166 @@ tbody tr:last-child td {
 
 /* Dark Mode */
 .dark {
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  background: linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 100%);
+}
+
+.dark header {
+  background: linear-gradient(135deg, #1e1e3f 0%, #2a2a4a 100%);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
 }
 
 .dark .summary-card,
 .dark .add-entry-section,
+.dark .filter-section,
 .dark .month-group,
 .dark .chart-card {
-  background: #0f3460;
-  color: #fff;
+  background: linear-gradient(135deg, #1e1e3f 0%, #252545 100%);
+  color: #e0e0e0;
+  border: 1px solid rgba(102, 126, 234, 0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.dark .summary-card:hover {
+  box-shadow: 0 8px 30px rgba(102, 126, 234, 0.3);
+  border-color: rgba(102, 126, 234, 0.3);
 }
 
 .dark .card-value,
 .dark .section-title,
 .dark .month-header h3,
 .dark td,
-.dark .chart-card h3 {
+.dark .chart-card h3,
+.dark .filter-section h3 {
   color: #fff;
 }
 
 .dark .card-label {
-  color: #aaa;
+  color: #b0b0b0;
 }
 
-.dark .controls input {
+.dark .controls input,
+.dark .controls select {
   background: #1a1a2e;
   color: #fff;
-  border-color: #444;
+  border-color: #3a3a5e;
+}
+
+.dark .controls input:focus,
+.dark .controls select:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+}
+
+.dark table {
+  background: linear-gradient(135deg, #1e1e3f 0%, #252545 100%);
+}
+
+.dark tbody tr:nth-child(odd) {
+  background: rgba(30, 30, 50, 0.5);
+}
+
+.dark tbody tr:nth-child(even) {
+  background: rgba(37, 37, 69, 0.5);
 }
 
 .dark tbody tr:hover {
-  background: #16213e;
+  background: linear-gradient(90deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%) !important;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
 }
 
 .dark .month-header {
-  border-bottom-color: #2a2a4e;
+  background: linear-gradient(135deg, #2a2a4a 0%, #3a3a5a 100%);
+  border-bottom-color: #3a3a5e;
 }
 
 .dark td {
-  border-bottom-color: #2a2a4e;
+  border-bottom-color: #3a3a5e;
+}
+
+.dark .filter-btn {
+  background: #2a2a4a;
+  color: #b0b0b0;
+  border-color: transparent;
+}
+
+.dark .filter-btn:hover {
+  background: #3a3a5a;
+  color: #fff;
+}
+
+.dark .filter-btn.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.5);
+}
+
+.dark .category-badge {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%);
+  color: #a0b0ff;
+}
+
+.dark .modal-content {
+  background: linear-gradient(135deg, #1e1e3f 0%, #252545 100%);
+  border: 1px solid rgba(102, 126, 234, 0.2);
+}
+
+.dark .modal-header {
+  border-bottom-color: #3a3a5e;
+}
+
+.dark .modal-header h2 {
+  color: #fff;
+}
+
+.dark .modal-close {
+  background: #2a2a4a;
+  color: #b0b0b0;
+}
+
+.dark .modal-close:hover {
+  background: #3a3a5a;
+  color: #eb3349;
+}
+
+.dark .modal-footer {
+  border-top-color: #3a3a5e;
+}
+
+.dark .cancel-btn {
+  background: #2a2a4a;
+  color: #b0b0b0;
+}
+
+.dark .cancel-btn:hover {
+  background: #3a3a5a;
+  color: #fff;
+}
+
+.dark .profile-menu {
+  background: linear-gradient(135deg, #1e1e3f 0%, #252545 100%);
+  border: 1px solid rgba(102, 126, 234, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.dark .profile-menu-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.dark .profile-menu-divider {
+  background: #3a3a5e;
+}
+
+.dark .profile-menu-item {
+  color: #e0e0e0;
+}
+
+.dark .profile-menu-item:hover {
+  background: rgba(102, 126, 234, 0.15);
+  color: #fff;
+}
+
+.dark .description-cell {
+  color: #b0b0b0;
 }
 
 /* Responsive Design */

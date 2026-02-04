@@ -57,6 +57,17 @@ function Dashboard() {
   const [darkMode, setDarkMode] = useState(false);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [editingEntry, setEditingEntry] = useState(null);
+  const [editDate, setEditDate] = useState("");
+  const [editIncome, setEditIncome] = useState("");
+  const [editExpense, setEditExpense] = useState("");
+  const [editCategory, setEditCategory] = useState("Other");
+  const [editDescription, setEditDescription] = useState("");
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   useEffect(() => {
     const currentUser = authAPI.getCurrentUser();
@@ -118,6 +129,104 @@ function Dashboard() {
     } catch (error) {
       console.error('Failed to delete expense:', error);
       alert('Failed to delete expense. Please try again.');
+    }
+  };
+
+  const handleEditClick = (entry) => {
+    setEditingEntry(entry);
+    setEditDate(entry.date);
+    setEditIncome(entry.income || "");
+    setEditExpense(entry.expense || "");
+    setEditCategory(entry.category || "Other");
+    setEditDescription(entry.description || "");
+  };
+
+  const handleCancelEdit = () => {
+    setEditingEntry(null);
+    setEditDate("");
+    setEditIncome("");
+    setEditExpense("");
+    setEditCategory("Other");
+    setEditDescription("");
+  };
+
+  const handleUpdateEntry = async () => {
+    if (!editDate) return;
+
+    try {
+      const updatedData = {
+        date: editDate,
+        income: editIncome ? parseFloat(editIncome) : 0,
+        expense: editExpense ? parseFloat(editExpense) : 0,
+        category: editCategory,
+        description: editDescription || null,
+      };
+
+      const data = await expenseAPI.update(editingEntry.id, updatedData);
+      const updatedEntries = entries.map(entry => 
+        entry.id === editingEntry.id ? data.expense : entry
+      );
+      updatedEntries.sort((a, b) => new Date(a.date) - new Date(b.date));
+      setEntries(updatedEntries);
+      handleCancelEdit();
+    } catch (error) {
+      console.error('Failed to update expense:', error);
+      alert('Failed to update expense. Please try again.');
+    }
+  };
+
+  const handleOpenPasswordModal = () => {
+    setShowProfileMenu(false);
+    setShowPasswordModal(true);
+  };
+
+  const handleClosePasswordModal = () => {
+    setShowPasswordModal(false);
+    setOldPassword("");
+    setNewPassword("");
+    setConfirmPassword("");
+  };
+
+  const handleChangePassword = async () => {
+    if (!oldPassword || !newPassword || !confirmPassword) {
+      alert('Please fill in all fields');
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      alert('New passwords do not match');
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      alert('New password must be at least 6 characters long');
+      return;
+    }
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/auth/change-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          oldPassword,
+          newPassword
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert('Password changed successfully!');
+        handleClosePasswordModal();
+      } else {
+        alert(data.message || 'Failed to change password');
+      }
+    } catch (error) {
+      console.error('Failed to change password:', error);
+      alert('Failed to change password. Please try again.');
     }
   };
 
@@ -338,6 +447,14 @@ function Dashboard() {
   const chartOptions = {
     responsive: true,
     maintainAspectRatio: false,
+    animation: {
+      duration: 1500,
+      easing: 'easeInOutQuart',
+    },
+    interaction: {
+      mode: 'index',
+      intersect: false,
+    },
     plugins: {
       legend: {
         position: 'top',
@@ -347,11 +464,15 @@ function Dashboard() {
             size: 12,
             weight: '600',
           },
+          usePointStyle: true,
+          pointStyle: 'circle',
         },
       },
       tooltip: {
         backgroundColor: 'rgba(0, 0, 0, 0.8)',
         padding: 12,
+        borderColor: 'rgba(102, 126, 234, 0.5)',
+        borderWidth: 1,
         titleFont: {
           size: 14,
           weight: 'bold',
@@ -389,6 +510,12 @@ function Dashboard() {
   const pieOptions = {
     responsive: true,
     maintainAspectRatio: false,
+    animation: {
+      animateRotate: true,
+      animateScale: true,
+      duration: 1500,
+      easing: 'easeInOutQuart',
+    },
     plugins: {
       legend: {
         position: 'bottom',
@@ -398,11 +525,15 @@ function Dashboard() {
             size: 13,
             weight: '600',
           },
+          usePointStyle: true,
+          pointStyle: 'circle',
         },
       },
       tooltip: {
         backgroundColor: 'rgba(0, 0, 0, 0.8)',
         padding: 12,
+        borderColor: 'rgba(102, 126, 234, 0.5)',
+        borderWidth: 1,
         callbacks: {
           label: function(context) {
             const label = context.label || '';
@@ -436,11 +567,41 @@ function Dashboard() {
             <p className="header-subtitle">Manage your finances smartly</p>
           </div>
           <div className="header-controls">
-            <span className="user-badge">👤 {user?.email}</span>
             <button className="theme-btn" onClick={() => setDarkMode(!darkMode)}>
               {darkMode ? "☀️" : "🌙"}
             </button>
-            <button className="logout-btn" onClick={handleLogout}>Logout</button>
+            <div className="profile-dropdown">
+              <button 
+                className="profile-btn" 
+                onClick={() => setShowProfileMenu(!showProfileMenu)}
+              >
+                <span className="profile-avatar">
+                  {user?.email?.charAt(0).toUpperCase()}
+                </span>
+                <span className="profile-name">{user?.name || 'User'}</span>
+                <span className="dropdown-arrow">{showProfileMenu ? '▲' : '▼'}</span>
+              </button>
+              {showProfileMenu && (
+                <div className="profile-menu">
+                  <div className="profile-menu-header">
+                    <div className="profile-avatar-large">
+                      {user?.email?.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="profile-info">
+                      <p className="profile-email">{user?.email}</p>
+                      <p className="profile-label">{user?.name || 'User'}</p>
+                    </div>
+                  </div>
+                  <div className="profile-menu-divider"></div>
+                  <button className="profile-menu-item" onClick={handleOpenPasswordModal}>
+                    <span>🔒</span> Change Password
+                  </button>
+                  <button className="profile-menu-item" onClick={handleLogout}>
+                    <span>🚪</span> Logout
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </header>
@@ -629,6 +790,13 @@ function Dashboard() {
                         </td>
                         <td className="action-cell">
                           <button 
+                            className="edit-btn" 
+                            onClick={() => handleEditClick(e)}
+                            title="Edit this entry"
+                          >
+                            ✏️
+                          </button>
+                          <button 
                             className="delete-btn" 
                             onClick={() => handleDeleteEntry(e.id)}
                             title="Delete this entry"
@@ -696,6 +864,139 @@ function Dashboard() {
           </div>
         </div>
       </div>
+
+      {/* Edit Modal */}
+      {editingEntry && (
+        <div className="modal-overlay" onClick={handleCancelEdit}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>✏️ Edit Entry</h2>
+              <button className="modal-close" onClick={handleCancelEdit}>✕</button>
+            </div>
+            <div className="modal-body">
+              <div className="edit-form">
+                <div className="input-group">
+                  <label>Date</label>
+                  <input
+                    type="date"
+                    max={new Date().toISOString().split("T")[0]}
+                    value={editDate}
+                    onChange={(e) => setEditDate(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="input-group">
+                  <label>Category</label>
+                  <select
+                    value={editCategory}
+                    onChange={(e) => setEditCategory(e.target.value)}
+                    className="category-select"
+                  >
+                    {CATEGORIES.map(cat => (
+                      <option key={cat.value} value={cat.value}>
+                        {cat.icon} {cat.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="input-group">
+                  <label>Income (₹)</label>
+                  <input
+                    type="number"
+                    placeholder="0.00"
+                    value={editIncome}
+                    onChange={(e) => setEditIncome(e.target.value)}
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
+                <div className="input-group">
+                  <label>Expense (₹)</label>
+                  <input
+                    type="number"
+                    placeholder="0.00"
+                    value={editExpense}
+                    onChange={(e) => setEditExpense(e.target.value)}
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
+                <div className="input-group input-group-full">
+                  <label>Description (Optional)</label>
+                  <input
+                    type="text"
+                    placeholder="Enter description..."
+                    value={editDescription}
+                    onChange={(e) => setEditDescription(e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="cancel-btn" onClick={handleCancelEdit}>
+                Cancel
+              </button>
+              <button className="save-btn" onClick={handleUpdateEntry} disabled={!editDate}>
+                💾 Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Change Password Modal */}
+      {showPasswordModal && (
+        <div className="modal-overlay" onClick={handleClosePasswordModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>🔒 Change Password</h2>
+              <button className="modal-close" onClick={handleClosePasswordModal}>✕</button>
+            </div>
+            <div className="modal-body">
+              <div className="password-form">
+                <div className="input-group">
+                  <label>Current Password</label>
+                  <input
+                    type="password"
+                    placeholder="Enter current password"
+                    value={oldPassword}
+                    onChange={(e) => setOldPassword(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="input-group">
+                  <label>New Password</label>
+                  <input
+                    type="password"
+                    placeholder="Enter new password (min 6 characters)"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="input-group">
+                  <label>Confirm New Password</label>
+                  <input
+                    type="password"
+                    placeholder="Confirm new password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="cancel-btn" onClick={handleClosePasswordModal}>
+                Cancel
+              </button>
+              <button className="save-btn" onClick={handleChangePassword}>
+                🔒 Change Password
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

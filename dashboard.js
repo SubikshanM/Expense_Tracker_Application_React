@@ -47,7 +47,12 @@ async function loadUser() {
     document.getElementById('profile-email').textContent = user.email;
   } catch (error) {
     console.error('Failed to load user:', error);
-    logout();
+    // Only logout if it's an auth error, not network error
+    if (error.message.includes('401') || error.message.includes('token')) {
+      logout();
+    } else {
+      alert('Failed to load user data. Backend may be deploying. Please refresh.');
+    }
   }
 }
 
@@ -61,7 +66,15 @@ async function loadExpenses() {
       },
     });
 
-    if (!response.ok) throw new Error('Failed to load expenses');
+    if (!response.ok) {
+      if (response.status === 401) {
+        // Only logout if unauthorized
+        alert('Session expired. Please login again.');
+        logout();
+        return;
+      }
+      throw new Error('Failed to load expenses');
+    }
 
     const data = await response.json();
     expenses = data.expenses.sort((a, b) => new Date(a.date) - new Date(b.date));
@@ -74,7 +87,9 @@ async function loadExpenses() {
     renderCharts();
   } catch (error) {
     console.error('Error loading expenses:', error);
-    alert('Failed to load expenses');
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    alert('Failed to load expenses. Backend may still be deploying. Please refresh in a minute.');
   }
 }
 

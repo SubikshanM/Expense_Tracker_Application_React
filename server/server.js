@@ -20,7 +20,10 @@ app.use(cors({
     const allowedOrigins = [
       'http://localhost:5173',
       'http://localhost:5174',
-      'https://expense-tracker-pjf8.onrender.com'
+      'http://localhost:5500',
+      'http://127.0.0.1:5500',
+      'https://expense-tracker-pjf8.onrender.com',
+      'https://expense-tracker-9mk7.onrender.com'
     ];
     
     if (allowedOrigins.indexOf(origin) !== -1 || origin.includes('onrender.com')) {

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Expense Tracker</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="auth-container">
+    <div class="auth-card">
+      <h1>Welcome Back</h1>
+      <p class="auth-subtitle">Login to your Expense Tracker account</p>
+
+      <div id="error-message" class="error-message" style="display: none;"></div>
+
+      <form id="login-form" class="auth-form">
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input
+            type="email"
+            id="email"
+            required
+            placeholder="Enter your email"
+            autocomplete="email"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input
+            type="password"
+            id="password"
+            required
+            placeholder="Enter your password"
+            autocomplete="current-password"
+          />
+        </div>
+
+        <button type="submit" class="auth-button" id="login-btn">
+          Login
+        </button>
+      </form>
+
+      <p class="auth-switch">
+        Don't have an account?
+        <a href="signup.html" class="link-button">Sign up</a>
+      </p>
+    </div>
+  </div>
+
+  <script src="auth.js"></script>
+  <script>
+    // Login handler
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const btn = document.getElementById('login-btn');
+      const errorDiv = document.getElementById('error-message');
+      
+      errorDiv.style.display = 'none';
+      btn.disabled = true;
+      btn.textContent = 'Logging in...';
+      
+      try {
+        await login(email, password);
+        window.location.href = 'dashboard.html';
+      } catch (error) {
+        errorDiv.textContent = error.message || 'Login failed. Please try again.';
+        errorDiv.style.display = 'block';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Login';
+      }
+    });
+  </script>
+</body>
+</html>

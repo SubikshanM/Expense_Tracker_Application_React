@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign Up - Expense Tracker</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="auth-container">
+    <div class="auth-card">
+      <h1>Create Account</h1>
+      <p class="auth-subtitle">Start tracking your expenses today</p>
+
+      <div id="error-message" class="error-message" style="display: none;"></div>
+
+      <form id="signup-form" class="auth-form">
+        <div class="form-group">
+          <label for="name">Full Name</label>
+          <input
+            type="text"
+            id="name"
+            required
+            placeholder="Enter your full name"
+            autocomplete="name"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input
+            type="email"
+            id="email"
+            required
+            placeholder="Enter your email"
+            autocomplete="email"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input
+            type="password"
+            id="password"
+            required
+            placeholder="Enter your password (min 6 characters)"
+            autocomplete="new-password"
+            minlength="6"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="confirm-password">Confirm Password</label>
+          <input
+            type="password"
+            id="confirm-password"
+            required
+            placeholder="Confirm your password"
+            autocomplete="new-password"
+            minlength="6"
+          />
+        </div>
+
+        <button type="submit" class="auth-button" id="signup-btn">
+          Sign Up
+        </button>
+      </form>
+
+      <p class="auth-switch">
+        Already have an account?
+        <a href="login.html" class="link-button">Login</a>
+      </p>
+    </div>
+  </div>
+
+  <script src="auth.js"></script>
+  <script>
+    // Signup handler
+    document.getElementById('signup-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const name = document.getElementById('name').value;
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirm-password').value;
+      const btn = document.getElementById('signup-btn');
+      const errorDiv = document.getElementById('error-message');
+      
+      errorDiv.style.display = 'none';
+      
+      // Validate passwords match
+      if (password !== confirmPassword) {
+        errorDiv.textContent = 'Passwords do not match';
+        errorDiv.style.display = 'block';
+        return;
+      }
+      
+      btn.disabled = true;
+      btn.textContent = 'Creating account...';
+      
+      try {
+        await signup(name, email, password);
+        window.location.href = 'dashboard.html';
+      } catch (error) {
+        errorDiv.textContent = error.message || 'Signup failed. Please try again.';
+        errorDiv.style.display = 'block';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Sign Up';
+      }
+    });
+  </script>
+</body>
+</html>

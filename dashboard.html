@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Expense Tracker</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <!-- Loading Screen -->
+  <div id="loading" class="loading-container">
+    <div class="spinner"></div>
+    <p>Loading your expenses...</p>
+  </div>
+
+  <!-- Main App -->
+  <div id="app" class="app" style="display: none;">
+    <!-- Header -->
+    <header>
+      <div class="header-content">
+        <div>
+          <h1>💰 Expense Tracker</h1>
+          <p class="header-subtitle">Track your income and expenses</p>
+        </div>
+        <div class="header-controls">
+          <button class="theme-btn" id="theme-toggle">🌙</button>
+          <div class="profile-dropdown">
+            <button class="profile-btn" id="profile-btn">
+              <div class="profile-avatar" id="profile-avatar"></div>
+              <span class="profile-name" id="profile-name"></span>
+              <span class="dropdown-arrow">▼</span>
+            </button>
+            <div class="profile-menu" id="profile-menu">
+              <div class="profile-menu-header">
+                <div class="profile-avatar-large" id="profile-avatar-large"></div>
+                <div class="profile-info">
+                  <p class="profile-email" id="profile-email"></p>
+                  <p class="profile-label">Account Details</p>
+                </div>
+              </div>
+              <hr class="profile-menu-divider">
+              <button class="profile-menu-item" id="change-password-btn">
+                <span>🔒</span> Change Password
+              </button>
+              <hr class="profile-menu-divider">
+              <button class="profile-menu-item logout" id="logout-btn">
+                <span>🚪</span> Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Summary Cards -->
+    <div class="summary-cards">
+      <div class="summary-card income-card">
+        <div class="card-icon">💵</div>
+        <div class="card-content">
+          <p class="card-label">Total Income</p>
+          <h2 class="card-value" id="total-income">₹0</h2>
+        </div>
+      </div>
+      <div class="summary-card expense-card">
+        <div class="card-icon">💸</div>
+        <div class="card-content">
+          <p class="card-label">Total Expenses</p>
+          <h2 class="card-value" id="total-expense">₹0</h2>
+        </div>
+      </div>
+      <div class="summary-card balance-card">
+        <div class="card-icon">💰</div>
+        <div class="card-content">
+          <p class="card-label">Balance</p>
+          <h2 class="card-value" id="balance">₹0</h2>
+        </div>
+      </div>
+      <div class="summary-card count-card">
+        <div class="card-icon">📊</div>
+        <div class="card-content">
+          <p class="card-label">Transactions</p>
+          <h2 class="card-value" id="total-count">0</h2>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add Entry Section -->
+    <section class="add-entry-section">
+      <h3 class="section-title">📝 Add New Entry</h3>
+      <form class="controls" id="add-entry-form">
+        <div class="input-group">
+          <label for="date">Date</label>
+          <input type="date" id="date" required />
+        </div>
+        <div class="input-group">
+          <label for="income">Income (₹)</label>
+          <input type="number" id="income" min="0" step="0.01" placeholder="0.00" />
+        </div>
+        <div class="input-group">
+          <label for="expense">Expense (₹)</label>
+          <input type="number" id="expense" min="0" step="0.01" placeholder="0.00" />
+        </div>
+        <div class="input-group">
+          <label for="category">Category</label>
+          <select id="category" class="category-select">
+            <option value="Other">📦 Other</option>
+            <option value="Food">🍕 Food & Dining</option>
+            <option value="Transportation">🚗 Transportation</option>
+            <option value="Entertainment">🎬 Entertainment</option>
+            <option value="Bills">💡 Bills & Utilities</option>
+            <option value="Healthcare">🏥 Healthcare</option>
+            <option value="Shopping">🛍️ Shopping</option>
+            <option value="Education">📚 Education</option>
+            <option value="Salary">💼 Salary</option>
+            <option value="Investment">📈 Investment</option>
+          </select>
+        </div>
+        <div class="input-group input-group-full">
+          <label for="description">Description (Optional)</label>
+          <input type="text" id="description" placeholder="Enter description..." />
+        </div>
+        <button type="submit" class="add-btn">➕ Add Entry</button>
+      </form>
+    </section>
+
+    <!-- Filter Section -->
+    <section class="filter-section">
+      <h3>🔍 Filter by Category</h3>
+      <div class="category-filters" id="category-filters">
+        <!-- Filters will be added by JavaScript -->
+      </div>
+    </section>
+
+    <!-- Charts Section -->
+    <section class="charts-section">
+      <div class="charts-grid-primary">
+        <div class="chart-container">
+          <h3>📈 Income vs Expense Trend</h3>
+          <div class="chart-wrapper-large">
+            <canvas id="lineChart"></canvas>
+          </div>
+        </div>
+        <div class="chart-container">
+          <h3>🥧 Category Distribution</h3>
+          <div class="chart-wrapper">
+            <canvas id="pieChart"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="charts-grid">
+        <div class="chart-container">
+          <h3>📊 Monthly Comparison</h3>
+          <div class="chart-wrapper">
+            <canvas id="barChart"></canvas>
+          </div>
+        </div>
+        <div class="chart-container">
+          <h3>🍩 Expense Breakdown</h3>
+          <div class="chart-wrapper">
+            <canvas id="doughnutChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Expenses Table -->
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Income</th>
+            <th>Expense</th>
+            <th>Balance</th>
+            <th>Category</th>
+            <th>Description</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="expenses-table">
+          <!-- Rows will be added by JavaScript -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Edit Modal -->
+  <div class="modal-overlay" id="edit-modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>✏️ Edit Entry</h2>
+        <button class="modal-close" id="close-edit-modal">×</button>
+      </div>
+      <div class="modal-body">
+        <form class="edit-form" id="edit-form">
+          <div class="input-group">
+            <label for="edit-date">Date</label>
+            <input type="date" id="edit-date" required />
+          </div>
+          <div class="input-group">
+            <label for="edit-income">Income (₹)</label>
+            <input type="number" id="edit-income" min="0" step="0.01" />
+          </div>
+          <div class="input-group">
+            <label for="edit-expense">Expense (₹)</label>
+            <input type="number" id="edit-expense" min="0" step="0.01" />
+          </div>
+          <div class="input-group">
+            <label for="edit-category">Category</label>
+            <select id="edit-category" class="category-select">
+              <option value="Other">📦 Other</option>
+              <option value="Food">🍕 Food & Dining</option>
+              <option value="Transportation">🚗 Transportation</option>
+              <option value="Entertainment">🎬 Entertainment</option>
+              <option value="Bills">💡 Bills & Utilities</option>
+              <option value="Healthcare">🏥 Healthcare</option>
+              <option value="Shopping">🛍️ Shopping</option>
+              <option value="Education">📚 Education</option>
+              <option value="Salary">💼 Salary</option>
+              <option value="Investment">📈 Investment</option>
+            </select>
+          </div>
+          <div class="input-group input-group-full">
+            <label for="edit-description">Description</label>
+            <input type="text" id="edit-description" />
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="cancel-btn" id="cancel-edit-btn">Cancel</button>
+        <button class="save-btn" id="save-edit-btn">💾 Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Password Change Modal -->
+  <div class="modal-overlay" id="password-modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>🔒 Change Password</h2>
+        <button class="modal-close" id="close-password-modal">×</button>
+      </div>
+      <div class="modal-body">
+        <form class="password-form" id="password-form">
+          <div class="input-group">
+            <label for="old-password">Current Password</label>
+            <input type="password" id="old-password" required minlength="6" placeholder="Enter current password" />
+          </div>
+          <div class="input-group">
+            <label for="new-password">New Password</label>
+            <input type="password" id="new-password" required minlength="6" placeholder="Enter new password (min 6 characters)" />
+          </div>
+          <div class="input-group">
+            <label for="confirm-password">Confirm New Password</label>
+            <input type="password" id="confirm-password" required minlength="6" placeholder="Confirm new password" />
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="cancel-btn" id="cancel-password-btn">Cancel</button>
+        <button class="save-btn" id="save-password-btn">🔑 Update Password</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="auth.js"></script>
+  <script src="dashboard.js"></script>
+</body>
+</html>

@@ -8,8 +8,7 @@ let selectedCategory = 'All';
 let currentEditingId = null;
 let user = null;
 
-// API Base URL
-const API_URL = 'https://expense-tracker-application-react.onrender.com/api';
+// API_URL is already defined in auth.js
 
 // Categories with icons
 const CATEGORIES = [

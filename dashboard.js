@@ -40,6 +40,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 async function loadUser() {
   try {
     user = await getCurrentUser();
+    
+    // Validate user data exists
+    if (!user || !user.name || !user.email) {
+      throw new Error('Invalid user data');
+    }
+    
     const initials = user.name.split(' ').map(n => n[0]).join('').toUpperCase();
     document.getElementById('profile-avatar').textContent = initials;
     document.getElementById('profile-avatar-large').textContent = initials;

@@ -66,20 +66,37 @@ async function loadUser() {
 async function loadExpenses() {
   try {
     const token = localStorage.getItem('token');
+    
+    // Add 90 second timeout for backend wake-up
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 90000);
+    
     const response = await fetch(`${API_URL}/expenses`, {
       headers: {
         'Authorization': `Bearer ${token}`,
       },
+      signal: controller.signal
     });
+    
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
+      // read server body for diagnostics
+      let bodyText = '';
+      try {
+        const json = await response.json();
+        bodyText = json.message || JSON.stringify(json);
+      } catch (e) {
+        try { bodyText = await response.text(); } catch (e2) { bodyText = ''; }
+      }
+      console.error(`Expenses fetch failed: status=${response.status} body=${bodyText}`);
       if (response.status === 401) {
         // Only logout if unauthorized
         alert('Session expired. Please login again.');
         logout();
         return;
       }
-      throw new Error('Failed to load expenses');
+      throw new Error(`Failed to load expenses (status ${response.status})`);
     }
 
     const data = await response.json();
@@ -95,7 +112,16 @@ async function loadExpenses() {
     console.error('Error loading expenses:', error);
     document.getElementById('loading').style.display = 'none';
     document.getElementById('app').style.display = 'block';
-    alert('Failed to load expenses. Backend may still be deploying. Please refresh in a minute.');
+    
+    if (error.name === 'AbortError') {
+      alert('Backend is waking up (free tier takes 50-60 seconds). Please wait 30 seconds and refresh the page.');
+    } else {
+      alert('Failed to load expenses. Backend may still be deploying or returned an error. Check console for details.');
+    }
+    
+    // Show empty dashboard
+    renderExpenses();
+    updateSummary();
   }
 }
 

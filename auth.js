@@ -80,7 +80,14 @@ async function getCurrentUser() {
   });
 
   if (!response.ok) {
-    throw new Error('Failed to get user');
+    let msg = `Failed to get user (status ${response.status})`;
+    try {
+      const body = await response.json();
+      if (body && body.message) msg += `: ${body.message}`;
+    } catch (e) {
+      // ignore JSON parse
+    }
+    throw new Error(msg);
   }
 
   return await response.json();

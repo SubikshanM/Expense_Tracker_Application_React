@@ -13,7 +13,7 @@
       <h1>Welcome Back</h1>
       <p class="auth-subtitle">Login to your Expense Tracker account</p>
 
-      <div id="error-message" class="error-message" style="display: none;"></div>
+      <div id="error-message" class="error-message" role="status" aria-live="polite" style="display: none;"></div>
 
       <form id="login-form" class="auth-form">
         <div class="form-group">
@@ -24,6 +24,7 @@
             required
             placeholder="Enter your email"
             autocomplete="email"
+            autofocus
           />
         </div>
 
@@ -38,6 +39,13 @@
               autocomplete="current-password"
             />
             <button type="button" class="password-toggle" id="password-toggle" aria-label="Show password">👁️</button>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <input type="checkbox" id="remember" />
+            <label for="remember" style="font-size:13px;color:var(--muted);margin:0;">Remember me</label>
           </div>
         </div>
 
@@ -67,6 +75,7 @@
       
       errorDiv.style.display = 'none';
       btn.disabled = true;
+      btn.classList.add('loading');
       btn.textContent = 'Logging in...';
       
       try {
@@ -77,6 +86,7 @@
         errorDiv.style.display = 'block';
       } finally {
         btn.disabled = false;
+        btn.classList.remove('loading');
         btn.textContent = 'Login';
       }
     });

@@ -136,6 +136,44 @@ html, body {
   box-shadow: 0 12px 30px rgba(102, 126, 234, 0.25);
 }
 
+/* Loading spinner inside auth button */
+.auth-button.loading {
+  position: relative;
+  padding-left: 56px;
+}
+.auth-button.loading::after {
+  content: '';
+  position: absolute;
+  left: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  border: 3px solid rgba(255,255,255,0.35);
+  border-top-color: rgba(255,255,255,0.95);
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+
+/* Focus-visible for accessibility */
+input:focus-visible, select:focus-visible, .password-toggle:focus {
+  outline: 3px solid rgba(102,126,234,0.18);
+  outline-offset: 2px;
+}
+
+/* Remember me checkbox styles */
+input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
+}
+
 .auth-button:disabled {
   opacity: 0.6;
   cursor: not-allowed;

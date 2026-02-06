@@ -9,10 +9,11 @@
 <body>
   <div class="auth-container">
     <div class="auth-card">
+      <div class="auth-logo">💸</div>
       <h1>Create Account</h1>
       <p class="auth-subtitle">Start tracking your expenses today</p>
 
-      <div id="error-message" class="error-message" style="display: none;"></div>
+      <div id="error-message" class="error-message" role="status" aria-live="polite" style="display: none;"></div>
 
       <form id="signup-form" class="auth-form">
         <div class="form-group">
@@ -23,6 +24,7 @@
             required
             placeholder="Enter your full name"
             autocomplete="name"
+            autofocus
           />
         </div>
 
@@ -39,26 +41,37 @@
 
         <div class="form-group">
           <label for="password">Password</label>
-          <input
-            type="password"
-            id="password"
-            required
-            placeholder="Enter your password (min 6 characters)"
-            autocomplete="new-password"
-            minlength="6"
-          />
+          <div class="password-wrap">
+            <input
+              type="password"
+              id="password"
+              required
+              placeholder="Enter your password (min 6 characters)"
+              autocomplete="new-password"
+              minlength="6"
+            />
+            <button type="button" class="password-toggle" id="password-toggle" aria-label="Show password">👁️</button>
+          </div>
         </div>
 
         <div class="form-group">
           <label for="confirm-password">Confirm Password</label>
-          <input
-            type="password"
-            id="confirm-password"
-            required
-            placeholder="Confirm your password"
-            autocomplete="new-password"
-            minlength="6"
-          />
+          <div class="password-wrap">
+            <input
+              type="password"
+              id="confirm-password"
+              required
+              placeholder="Confirm your password"
+              autocomplete="new-password"
+              minlength="6"
+            />
+            <button type="button" class="password-toggle" id="confirm-password-toggle" aria-label="Show password">👁️</button>
+          </div>
+        </div>
+
+        <div class="form-group" style="display:flex;align-items:center;gap:10px;">
+          <input type="checkbox" id="agree" />
+          <label for="agree" style="font-size:13px;color:var(--muted);margin:0;">I agree to the Terms of Service</label>
         </div>
 
         <button type="submit" class="auth-button" id="signup-btn">
@@ -96,6 +109,7 @@
       }
       
       btn.disabled = true;
+      btn.classList.add('loading');
       btn.textContent = 'Creating account...';
       
       try {
@@ -106,9 +120,30 @@
         errorDiv.style.display = 'block';
       } finally {
         btn.disabled = false;
+        btn.classList.remove('loading');
         btn.textContent = 'Sign Up';
       }
     });
+
+    // Password visibility toggles
+    const pwToggle = document.getElementById('password-toggle');
+    if (pwToggle) {
+      pwToggle.addEventListener('click', () => {
+        const pw = document.getElementById('password');
+        if (!pw) return;
+        if (pw.type === 'password') { pw.type = 'text'; pwToggle.textContent = '🙈'; } else { pw.type = 'password'; pwToggle.textContent = '👁️'; }
+        pw.focus();
+      });
+    }
+    const cpwToggle = document.getElementById('confirm-password-toggle');
+    if (cpwToggle) {
+      cpwToggle.addEventListener('click', () => {
+        const pw = document.getElementById('confirm-password');
+        if (!pw) return;
+        if (pw.type === 'password') { pw.type = 'text'; cpwToggle.textContent = '🙈'; } else { pw.type = 'password'; cpwToggle.textContent = '👁️'; }
+        pw.focus();
+      });
+    }
   </script>
 </body>
 </html>

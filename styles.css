@@ -982,6 +982,22 @@ tbody tr:last-child td {
   height: 400px;
 }
 
+/* Make canvas visually blend into card with rounded corners */
+.chart-wrapper canvas {
+  border-radius: 12px;
+  background: transparent;
+}
+
+/* Improve legend spacing inside chart containers */
+.chart-container .chartjs-render-monitor + .chart-legend,
+.chart-container .chart-legend {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
 /* Loading Styles */
 .loading-container {
   display: flex;

@@ -1,6 +1,34 @@
 // Check authentication on page load
 checkAuth();
 
+// Register small Chart.js plugin to show center text on doughnut (total)
+try {
+  const doughnutCenterPlugin = {
+    id: 'doughnutCenter',
+    beforeDraw(chart, args, options) {
+      if (chart.config.type !== 'doughnut' && chart.config.type !== 'pie') return;
+      const { ctx, data, chartArea } = chart;
+      const total = data.datasets && data.datasets[0] ? data.datasets[0].data.reduce((a, b) => a + b, 0) : 0;
+      ctx.save();
+      const centerX = (chartArea.left + chartArea.right) / 2;
+      const centerY = (chartArea.top + chartArea.bottom) / 2;
+      ctx.fillStyle = options && options.color ? options.color : '#333';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.font = (options && options.font) || '600 16px Inter, system-ui, -apple-system, "Segoe UI", Roboto';
+      const txt = total ? '₹' + total.toFixed(2) : '₹0.00';
+      ctx.fillText(txt, centerX, centerY);
+      ctx.restore();
+    }
+  };
+
+  if (window.Chart && !Chart.registry.plugins._list?.some(p => p.id === 'doughnutCenter')) {
+    Chart.register(doughnutCenterPlugin);
+  }
+} catch (e) {
+  // ignore if Chart not loaded yet
+}
+
 // Global state
 let expenses = [];
 let darkMode = false;
@@ -308,7 +336,15 @@ function renderLineChart() {
   const expensesList = expenses.map(e => e.expense || 0);
   
   if (lineChart) lineChart.destroy();
-  
+  // create gradients for nicer fills
+  const gradientIncome = ctx.createLinearGradient(0, 0, 0, ctx.canvas.height || 400);
+  gradientIncome.addColorStop(0, 'rgba(17,153,142,0.25)');
+  gradientIncome.addColorStop(1, 'rgba(17,153,142,0.03)');
+
+  const gradientExpense = ctx.createLinearGradient(0, 0, 0, ctx.canvas.height || 400);
+  gradientExpense.addColorStop(0, 'rgba(235,51,73,0.22)');
+  gradientExpense.addColorStop(1, 'rgba(235,51,73,0.03)');
+
   lineChart = new Chart(ctx, {
     type: 'line',
     data: {
@@ -318,17 +354,21 @@ function renderLineChart() {
           label: 'Income',
           data: incomes,
           borderColor: '#11998e',
-          backgroundColor: 'rgba(17, 153, 142, 0.1)',
+          backgroundColor: gradientIncome,
           fill: true,
           tension: 0.4,
+          pointRadius: 4,
+          pointHoverRadius: 6,
         },
         {
           label: 'Expense',
           data: expensesList,
           borderColor: '#eb3349',
-          backgroundColor: 'rgba(235, 51, 73, 0.1)',
+          backgroundColor: gradientExpense,
           fill: true,
           tension: 0.4,
+          pointRadius: 4,
+          pointHoverRadius: 6,
         },
       ],
     },
@@ -339,7 +379,16 @@ function renderLineChart() {
         legend: {
           display: true,
           position: 'top',
+          labels: { usePointStyle: true, boxWidth: 10, padding: 12 }
         },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              const val = context.parsed.y ?? context.parsed;
+              return context.dataset.label + ': ₹' + (Number(val) || 0).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+            }
+          }
+        }
       },
       scales: {
         y: {
@@ -347,7 +396,7 @@ function renderLineChart() {
         },
       },
       animation: {
-        duration: 1500,
+        duration: 900,
       },
     },
   });
@@ -373,7 +422,16 @@ function renderBarChart() {
   const expensesList = months.map(m => monthlyData[m].expense);
   
   if (barChart) barChart.destroy();
-  
+
+  // create gradients
+  const gInc = ctx.createLinearGradient(0, 0, 0, ctx.canvas.height || 300);
+  gInc.addColorStop(0, 'rgba(17,153,142,0.9)');
+  gInc.addColorStop(1, 'rgba(17,153,142,0.6)');
+
+  const gExp = ctx.createLinearGradient(0, 0, 0, ctx.canvas.height || 300);
+  gExp.addColorStop(0, 'rgba(235,51,73,0.9)');
+  gExp.addColorStop(1, 'rgba(235,51,73,0.6)');
+
   barChart = new Chart(ctx, {
     type: 'bar',
     data: {
@@ -382,12 +440,14 @@ function renderBarChart() {
         {
           label: 'Income',
           data: incomes,
-          backgroundColor: '#11998e',
+          backgroundColor: gInc,
+          borderRadius: 6,
         },
         {
           label: 'Expense',
           data: expensesList,
-          backgroundColor: '#eb3349',
+          backgroundColor: gExp,
+          borderRadius: 6,
         },
       ],
     },
@@ -395,19 +455,20 @@ function renderBarChart() {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: {
-          display: true,
-          position: 'top',
-        },
+        legend: { display: true, position: 'top', labels: { boxWidth: 12 } },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              const val = context.parsed.y ?? context.parsed;
+              return context.dataset.label + ': ₹' + (Number(val) || 0).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+            }
+          }
+        }
       },
       scales: {
-        y: {
-          beginAtZero: true,
-        },
+        y: { beginAtZero: true }
       },
-      animation: {
-        duration: 1500,
-      },
+      animation: { duration: 900 }
     },
   });
 }
@@ -431,7 +492,7 @@ function renderDoughnutChart() {
   const data = Object.values(categoryTotals);
   
   if (doughnutChart) doughnutChart.destroy();
-  
+
   doughnutChart = new Chart(ctx, {
     type: 'doughnut',
     data: {
@@ -443,20 +504,26 @@ function renderDoughnutChart() {
           '#f45c43', '#4facfe', '#fa709a', '#fee140',
           '#38ef7d', '#00f2fe',
         ],
+        borderColor: '#ffffff',
+        borderWidth: 2,
       }],
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      cutout: '60%',
       plugins: {
-        legend: {
-          display: true,
-          position: 'bottom',
+        legend: { display: true, position: 'bottom', labels: { boxWidth: 12 } },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              const val = context.parsed || 0;
+              return context.label + ': ₹' + (Number(val) || 0).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+            }
+          }
         },
       },
-      animation: {
-        duration: 1500,
-      },
+      animation: { duration: 900 },
     },
   });
 }
@@ -480,7 +547,7 @@ function renderPieChart() {
   const data = Object.values(categoryTotals);
   
   if (pieChart) pieChart.destroy();
-  
+
   pieChart = new Chart(ctx, {
     type: 'pie',
     data: {
@@ -492,20 +559,25 @@ function renderPieChart() {
           '#f45c43', '#4facfe', '#fa709a', '#fee140',
           '#38ef7d', '#00f2fe',
         ],
+        borderColor: '#ffffff',
+        borderWidth: 2,
       }],
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: {
-          display: true,
-          position: 'bottom',
+        legend: { display: true, position: 'bottom', labels: { boxWidth: 12 } },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              const val = context.parsed || 0;
+              return context.label + ': ₹' + (Number(val) || 0).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+            }
+          }
         },
       },
-      animation: {
-        duration: 1500,
-      },
+      animation: { duration: 900 },
     },
   });
 }

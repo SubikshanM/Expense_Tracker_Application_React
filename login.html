@@ -9,6 +9,7 @@
 <body>
   <div class="auth-container">
     <div class="auth-card">
+        <div class="auth-logo">💸</div>
       <h1>Welcome Back</h1>
       <p class="auth-subtitle">Login to your Expense Tracker account</p>
 
@@ -28,18 +29,22 @@
 
         <div class="form-group">
           <label for="password">Password</label>
-          <input
-            type="password"
-            id="password"
-            required
-            placeholder="Enter your password"
-            autocomplete="current-password"
-          />
+          <div class="password-wrap">
+            <input
+              type="password"
+              id="password"
+              required
+              placeholder="Enter your password"
+              autocomplete="current-password"
+            />
+            <button type="button" class="password-toggle" id="password-toggle" aria-label="Show password">👁️</button>
+          </div>
         </div>
 
         <button type="submit" class="auth-button" id="login-btn">
           Login
         </button>
+        <p style="text-align:center;margin-top:12px;font-size:13px;color:var(--muted);"> <a href="#" id="forgot-link" class="link-button">Forgot password?</a></p>
       </form>
 
       <p class="auth-switch">
@@ -75,6 +80,32 @@
         btn.textContent = 'Login';
       }
     });
+
+    // Password visibility toggle
+    const pwToggle = document.getElementById('password-toggle');
+    if (pwToggle) {
+      pwToggle.addEventListener('click', () => {
+        const pw = document.getElementById('password');
+        if (!pw) return;
+        if (pw.type === 'password') {
+          pw.type = 'text';
+          pwToggle.textContent = '🙈';
+        } else {
+          pw.type = 'password';
+          pwToggle.textContent = '👁️';
+        }
+        pw.focus();
+      });
+    }
+
+    // Forgot password (placeholder)
+    const forgot = document.getElementById('forgot-link');
+    if (forgot) {
+      forgot.addEventListener('click', (e) => {
+        e.preventDefault();
+        alert('If you forgot your password, use the Change Password option after logging in or contact support.');
+      });
+    }
   </script>
 </body>
 </html>

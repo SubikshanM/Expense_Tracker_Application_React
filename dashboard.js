@@ -39,13 +39,20 @@ document.addEventListener('DOMContentLoaded', async () => {
 // Load current user
 async function loadUser() {
   try {
-    user = await getCurrentUser();
-    
+    let u = await getCurrentUser();
+
+    // Backend may wrap user in { user: {...} } or { data: {...} }
+    if (u && u.user) u = u.user;
+    if (u && u.data) u = u.data;
+
     // Validate user data exists
-    if (!user || !user.name || !user.email) {
+    if (!u || !u.name || !u.email) {
+      console.error('Invalid user payload from /auth/me:', u);
       throw new Error('Invalid user data');
     }
-    
+
+    user = u;
+
     const initials = user.name.split(' ').map(n => n[0]).join('').toUpperCase();
     document.getElementById('profile-avatar').textContent = initials;
     document.getElementById('profile-avatar-large').textContent = initials;
@@ -100,7 +107,16 @@ async function loadExpenses() {
     }
 
     const data = await response.json();
-    expenses = data.expenses.sort((a, b) => new Date(a.date) - new Date(b.date));
+    // Normalize expenses array and coerce numeric fields
+    const raw = Array.isArray(data.expenses) ? data.expenses : (data.data || data.items || []);
+    expenses = raw.map(e => ({
+      id: e.id,
+      date: e.date,
+      income: Number(e.income) || 0,
+      expense: Number(e.expense) || 0,
+      category: e.category || 'Other',
+      description: e.description || ''
+    })).sort((a, b) => new Date(a.date) - new Date(b.date));
     
     document.getElementById('loading').style.display = 'none';
     document.getElementById('app').style.display = 'block';

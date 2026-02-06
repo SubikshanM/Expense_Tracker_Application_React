@@ -110,6 +110,8 @@ html, body {
   font-size: 15px;
   transition: box-shadow var(--transition-fast), border-color var(--transition-fast);
   outline: none;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .form-group input:focus {
@@ -199,10 +201,17 @@ input[type="checkbox"] {
 }
 
 /* Password toggle */
-.password-wrap { position: relative; }
+.password-wrap {
+  position: relative;
+  display: block;
+}
+.password-wrap input {
+  width: 100%;
+  padding-right: 48px; /* leave space for the toggle button */
+}
 .password-toggle {
   position: absolute;
-  right: 8px;
+  right: 10px;
   top: 50%;
   transform: translateY(-50%);
   background: transparent;

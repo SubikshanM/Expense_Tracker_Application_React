@@ -431,41 +431,124 @@ header h1 {
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-  min-width: 280px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(250,250,255,0.96));
+  border-radius: 14px;
+  box-shadow: 0 18px 50px rgba(11,22,50,0.18);
+  min-width: 320px;
   z-index: 100;
-  animation: fadeIn 0.3s ease;
+  /* smoother reveal + glass */
+  opacity: 0;
+  transform: translateY(8px) scale(.995);
+  transition: opacity 220ms ease, transform 220ms ease, box-shadow 220ms ease;
   overflow: hidden;
   display: none;
+  backdrop-filter: blur(8px) saturate(120%);
 }
 
 .profile-menu.show {
   display: block;
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.profile-menu::after {
+  content: '';
+  position: absolute;
+  top: -8px;
+  right: 28px;
+  width: 18px;
+  height: 18px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(250,250,255,0.96));
+  transform: rotate(45deg);
+  box-shadow: -4px -6px 12px rgba(0,0,0,0.06);
+  z-index: 0;
 }
 
 .profile-menu-header {
-  padding: 20px;
+  padding: 18px 20px;
   display: flex;
   align-items: center;
-  gap: 12px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  gap: 14px;
+  background: linear-gradient(135deg, #6b7df0 0%, #7a5ad8 100%);
   color: white;
+  position: relative;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+  box-shadow: inset 0 -18px 40px rgba(0,0,0,0.06);
 }
 
+/* removed .profile-upgrade — upgrade CTA removed */
+
 .profile-avatar-large {
-  width: 48px;
-  height: 48px;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.3);
+  background: linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.06));
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 700;
-  font-size: 24px;
+  font-weight: 800;
+  font-size: 20px;
   color: white;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(6px);
+  border: 3px solid rgba(255,255,255,0.08);
+  box-shadow: 0 14px 40px rgba(9,30,66,0.12);
+  position: relative;
+}
+
+.profile-avatar-large::after {
+  content: '';
+  position: absolute;
+  width: 78px;
+  height: 78px;
+  border-radius: 50%;
+  left: -7px;
+  top: -7px;
+  z-index: -1;
+  background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.06), transparent 20%), linear-gradient(135deg,#8ec5ff22,#b066ff22);
+}
+
+.profile-name-large {
+  margin: 0 0 6px 0;
+  font-size: 15px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile-email {
+  margin: 0;
+  font-size: 13px;
+  color: rgba(255,255,255,0.95);
+  opacity: 0.95;
+  font-weight: 600;
+}
+
+.profile-meta {
+  margin-top: 8px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.profile-plan {
+  background: rgba(255,255,255,0.12);
+  color: #ffffff;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  box-shadow: 0 6px 18px rgba(102,126,234,0.12);
+}
+
+.profile-member-since {
+  font-size: 12px;
+  color: rgba(255,255,255,0.92);
+  opacity: 0.95;
 }
 
 .profile-info {
@@ -497,21 +580,46 @@ header h1 {
   margin: 0;
 }
 
+
 .profile-menu-item {
   width: 100%;
-  background: none;
+  background: transparent;
   border: none;
-  padding: 14px 20px;
+  padding: 14px 18px;
   text-align: left;
   cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
-  color: #333;
+  font-size: 15px;
+  font-weight: 700;
+  color: #25304a;
   display: flex;
   align-items: center;
-  gap: 10px;
-  transition: all 0.2s ease;
+  gap: 12px;
+  transition: all 0.18s ease;
 }
+
+.profile-menu-item .icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  box-shadow: 0 8px 20px rgba(15,23,42,0.06);
+  font-size: 18px;
+}
+
+.profile-menu-item.logout .icon { background: linear-gradient(135deg,#fff7f7,#fff0f0); color: #c0392b; }
+.profile-menu-item#change-password-btn .icon { background: linear-gradient(135deg,#f0fbff,#e6f7ff); color: #0b69ff; }
+
+.profile-menu-item { border-bottom: 1px solid rgba(15,23,42,0.04); }
+.profile-menu-item:hover { background: rgba(102,126,234,0.04); transform: translateY(-3px); box-shadow: 0 12px 28px rgba(12,22,55,0.06); }
+
+.profile-info { min-width: 160px; }
+.profile-name-large { font-size: 17px; }
+.profile-member-since { opacity: 0.9; font-size: 12px; }
+
+.profile-menu-item span[aria-hidden="true"] { margin-right: 8px; }
 
 .profile-menu-item:hover {
   background: #f8f9ff;

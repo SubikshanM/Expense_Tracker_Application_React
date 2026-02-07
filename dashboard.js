@@ -87,6 +87,51 @@ async function loadUser() {
     document.getElementById('profile-avatar-large').textContent = initials;
     document.getElementById('profile-name').textContent = user.name;
     document.getElementById('profile-email').textContent = user.email;
+    // enhanced header fields
+    const nameLargeEl = document.getElementById('profile-name-large');
+    if (nameLargeEl) nameLargeEl.textContent = user.name;
+    // try common createdAt fields to show member since
+    const created = user.createdAt || user.created_at || user.joined || user.registeredAt || user.registered_at;
+    const sinceEl = document.getElementById('profile-since');
+    if (sinceEl) {
+      if (created) {
+        try {
+          const d = new Date(created);
+          if (!isNaN(d)) {
+            const opts = { month: 'short', year: 'numeric' };
+            sinceEl.textContent = 'Member since ' + d.toLocaleDateString('en-US', opts);
+            sinceEl.style.display = 'inline-block';
+          } else {
+            sinceEl.style.display = 'none';
+          }
+        } catch (e) {
+          sinceEl.style.display = 'none';
+        }
+      } else {
+        sinceEl.style.display = 'none';
+      }
+    }
+
+    // show plan if available
+    const plan = user.plan || user.role || user.accountType || 'Free';
+    const planEl = document.querySelector('.profile-plan');
+    if (planEl) planEl.textContent = plan;
+
+    // avatar URL support: if user.avatarUrl present, set as background
+    if (user.avatarUrl) {
+      const av = document.getElementById('profile-avatar-large');
+      const avSmall = document.getElementById('profile-avatar');
+      if (av) {
+        av.style.background = `url(${user.avatarUrl}) center/cover no-repeat`;
+        av.textContent = '';
+      }
+      if (avSmall) {
+        avSmall.style.background = `url(${user.avatarUrl}) center/cover no-repeat`;
+        avSmall.textContent = '';
+      }
+    }
+
+    /* Upgrade CTA removed from UI */
   } catch (error) {
     console.error('Failed to load user:', error);
     // Only logout if it's an auth error, not network error
@@ -590,12 +635,58 @@ function openEditModal(id) {
   if (!entry) return;
   
   currentEditingId = id;
-  document.getElementById('edit-date').value = entry.date;
+  // Ensure date input receives a YYYY-MM-DD value (handles ISO strings)
+  try {
+    const editDateEl = document.getElementById('edit-date');
+    let dateVal = '';
+    if (entry.date) {
+      const d = new Date(entry.date);
+      if (!isNaN(d)) {
+        dateVal = d.toISOString().split('T')[0];
+      } else if (typeof entry.date === 'string' && entry.date.length >= 10) {
+        dateVal = entry.date.slice(0, 10);
+      }
+    }
+    if (editDateEl) editDateEl.value = dateVal;
+  } catch (e) {
+    // fallback: set raw value
+    const el = document.getElementById('edit-date');
+    if (el) el.value = entry.date || '';
+  }
   document.getElementById('edit-income').value = entry.income || '';
   document.getElementById('edit-expense').value = entry.expense || '';
   document.getElementById('edit-category').value = entry.category;
   document.getElementById('edit-description').value = entry.description || '';
   
+  // Show only the relevant fields depending on whether this entry is Income or Expense
+  const incomeGroup = document.getElementById('edit-income-group');
+  const expenseGroup = document.getElementById('edit-expense-group');
+  const categoryGroup = document.getElementById('edit-category-group');
+
+  // Determine which container to show: prioritize income if income > 0
+  if (Number(entry.income) > 0 && (!entry.expense || Number(entry.expense) === 0)) {
+    if (incomeGroup) incomeGroup.style.display = 'block';
+    if (expenseGroup) expenseGroup.style.display = 'none';
+    if (categoryGroup) categoryGroup.style.display = 'none';
+    // For income entries, category should be 'Income'
+    const editCat = document.getElementById('edit-category');
+    if (editCat) editCat.value = 'Income';
+  } else if (Number(entry.expense) > 0 && (!entry.income || Number(entry.income) === 0)) {
+    if (incomeGroup) incomeGroup.style.display = 'none';
+    if (expenseGroup) expenseGroup.style.display = 'block';
+    if (categoryGroup) categoryGroup.style.display = 'block';
+    // ensure category is set to the saved category (or Other)
+    const editCat = document.getElementById('edit-category');
+    if (editCat) editCat.value = entry.category || 'Other';
+  } else {
+    // Fallback: if both are zero or both set, show both
+    if (incomeGroup) incomeGroup.style.display = 'block';
+    if (expenseGroup) expenseGroup.style.display = 'block';
+    if (categoryGroup) categoryGroup.style.display = 'block';
+    const editCat = document.getElementById('edit-category');
+    if (editCat) editCat.value = entry.category || 'Other';
+  }
+
   document.getElementById('edit-modal').style.display = 'flex';
 }
 
@@ -647,6 +738,7 @@ function toggleProfileMenu() {
   const menu = document.getElementById('profile-menu');
   menu.classList.toggle('show');
 }
+// (Profile menu visual only — no extra JS behavior added)
 
 // Open password modal
 function openPasswordModal() {
@@ -770,14 +862,15 @@ function initializeEventListeners() {
     });
   }
   
-  // Profile menu
+  // Profile menu: simple click toggle (no extra keyboard behavior added)
   document.getElementById('profile-btn').addEventListener('click', toggleProfileMenu);
-  
-  // Close profile menu when clicking outside
+
+  // Close profile menu when clicking outside (simple removal)
   document.addEventListener('click', (e) => {
     const dropdown = document.querySelector('.profile-dropdown');
     if (dropdown && !dropdown.contains(e.target)) {
-      document.getElementById('profile-menu').classList.remove('show');
+      const menu = document.getElementById('profile-menu');
+      if (menu) menu.classList.remove('show');
     }
   });
   

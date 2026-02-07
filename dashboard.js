@@ -49,6 +49,7 @@ const CATEGORIES = [
   { value: 'Education', label: 'Education', icon: '📚' },
   { value: 'Salary', label: 'Salary', icon: '💼' },
   { value: 'Investment', label: 'Investment', icon: '📈' },
+  { value: 'Income', label: 'Income', icon: '💰' },
   { value: 'Other', label: 'Other', icon: '📦' },
 ];
 
@@ -143,7 +144,8 @@ async function loadExpenses() {
       income: Number(e.income) || 0,
       expense: Number(e.expense) || 0,
       category: e.category || 'Other',
-      description: e.description || ''
+      // accept several possible server keys for description
+      description: (e.description || e.desc || e.note || e.memo || '').toString()
     })).sort((a, b) => new Date(a.date) - new Date(b.date));
     
     document.getElementById('loading').style.display = 'none';
@@ -695,19 +697,54 @@ function initializeEventListeners() {
   // Add entry form
   document.getElementById('add-entry-form').addEventListener('submit', async (e) => {
     e.preventDefault();
-    
     const date = document.getElementById('date').value;
-    const income = parseFloat(document.getElementById('income').value) || 0;
-    const expense = parseFloat(document.getElementById('expense').value) || 0;
-    const category = document.getElementById('category').value;
+    const type = document.getElementById('entry-type').value;
+    const amountRaw = document.getElementById('amount').value;
     const description = document.getElementById('description').value;
-    
-    if (!date) {
-      alert('Please select a date');
-      return;
+    const categoryEl = document.getElementById('category');
+    const category = categoryEl ? categoryEl.value : 'Other';
+
+    if (!date) { alert('Please select a date'); return; }
+    if (!type) { alert('Please choose Income or Expense'); return; }
+    const amt = parseFloat(amountRaw);
+    if (isNaN(amt) || amt <= 0) { alert('Please enter a valid amount greater than 0'); return; }
+
+    const payload = { date, income: 0, expense: 0, category: 'Other', description };
+    if (type === 'Income') {
+      payload.income = amt;
+      payload.expense = 0;
+      payload.category = 'Income';
+    } else {
+      payload.expense = amt;
+      payload.income = 0;
+      payload.category = category || 'Other';
     }
-    
-    await addExpense({ date, income, expense, category, description });
+
+    await addExpense(payload);
+
+    // Clear the add-entry form fields after successful add
+    try {
+      const amountEl = document.getElementById('amount');
+      const descEl = document.getElementById('description');
+      const typeEl = document.getElementById('entry-type');
+      const catEl = document.getElementById('category');
+      const catGroup = document.getElementById('category-group');
+
+      if (amountEl) amountEl.value = '';
+      if (descEl) descEl.value = '';
+      if (typeEl) typeEl.value = '';
+      if (catEl) catEl.value = 'Other';
+      if (catGroup) catGroup.style.display = 'none';
+
+      // reset date to today
+      setTodayDate();
+
+      // focus back to type for faster entry
+      if (typeEl) typeEl.focus();
+    } catch (e) {
+      // ignore errors during form reset
+      console.warn('Failed to reset add-entry form', e);
+    }
     
     // Reset form
     document.getElementById('income').value = '';
@@ -719,6 +756,19 @@ function initializeEventListeners() {
   
   // Theme toggle
   document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+  
+  // Show/hide category depending on type
+  const typeSelect = document.getElementById('entry-type');
+  const categoryGroup = document.getElementById('category-group');
+  if (typeSelect) {
+    typeSelect.addEventListener('change', (e) => {
+      if (e.target.value === 'Expense') {
+        if (categoryGroup) categoryGroup.style.display = 'block';
+      } else {
+        if (categoryGroup) categoryGroup.style.display = 'none';
+      }
+    });
+  }
   
   // Profile menu
   document.getElementById('profile-btn').addEventListener('click', toggleProfileMenu);

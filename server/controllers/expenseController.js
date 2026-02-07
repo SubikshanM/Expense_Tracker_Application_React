@@ -35,12 +35,13 @@ export const addExpense = async (req, res) => {
     }
 
     const result = await query(
-      'INSERT INTO expenses (user_id, date, income, expense, category) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      'INSERT INTO expenses (user_id, date, income, expense, description, category) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
       [
         req.user.userId,
         date,
         income || 0,
         expense || 0,
+        description || null,
         category || 'Other'
       ]
     );

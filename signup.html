@@ -69,9 +69,11 @@
           </div>
         </div>
 
-        <div class="form-group" style="display:flex;align-items:center;gap:10px;">
-          <input type="checkbox" id="agree" />
-          <label for="agree" style="font-size:13px;color:var(--muted);margin:0;">I agree to the Terms of Service</label>
+        <div class="form-group terms-prompt">
+          <span class="terms-text">Please</span>
+          <a href="#" id="terms-link" class="terms-link">open the Terms of Service</a>
+          <span class="terms-after">and accept them to create an account.</span>
+          <span id="signup-terms-badge" class="signup-terms-badge" aria-hidden="true" title="Session-only acceptance — cleared on reload" tabindex="0" role="status" aria-live="polite"></span>
         </div>
 
         <button type="submit" class="auth-button" id="signup-btn">
@@ -87,6 +89,71 @@
   </div>
 
   <script src="auth.js"></script>
+  <!-- Terms Modal -->
+  <div class="modal-overlay" id="terms-modal" role="dialog" aria-modal="true" aria-labelledby="terms-title" tabindex="-1">
+    <div class="modal-content" role="document">
+      <div class="modal-header">
+        <div class="modal-title">
+          <div class="modal-icon" aria-hidden="true">📜</div>
+          <div>
+            <h2 id="terms-title">Terms of Service</h2>
+            <p class="modal-subtitle">Please read the summary and confirm to continue</p>
+          </div>
+        </div>
+        <button class="modal-close" id="close-terms-modal" type="button" aria-label="Close Terms">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-scroll">
+          <p class="modal-intro">These Terms of Service (&quot;Terms&quot;) govern your use of the Expense Tracker web application (&quot;Service&quot;). By creating an account or using the Service you accept and agree to be bound by these Terms.</p>
+
+          <h3 class="terms-heading">1. Using the Service</h3>
+          <p>Expense Tracker helps you record and view personal income and expenses. You must be at least 13 years old to use the Service. You agree to provide accurate information when creating your account and to keep your account credentials secure. You are responsible for all activity that occurs using your account.</p>
+
+          <h3 class="terms-heading">2. Your Data and Privacy</h3>
+          <p>We store the information and entries you submit to the Service (for example: transaction amount, category, date, and optional notes). Do not submit highly sensitive personal data (such as full payment card numbers, government IDs, or passwords for other services). Our Privacy Policy describes how we collect, use, and protect your data.</p>
+
+          <h3 class="terms-heading">3. Acceptable Use</h3>
+          <p>You must not use the Service for any unlawful purpose or to upload content that violates third-party rights. Prohibited activities include attempting to breach security, interfering with the operation of the Service, or submitting misleading or fraudulent information.</p>
+
+          <h3 class="terms-heading">4. No Financial Advice</h3>
+          <p>The Service is provided for personal record-keeping and budgeting only. It does not provide financial, tax, legal, or investment advice. You should consult a licensed professional for any financial decisions.</p>
+
+          <h3 class="terms-heading">5. Intellectual Property</h3>
+          <p>The Service and its original content (excluding user-provided content) are the property of the Service provider and are protected by intellectual property laws. You may not reproduce or distribute copyrighted material without permission.</p>
+
+          <h3 class="terms-heading">6. Data Retention and Deletion</h3>
+          <p>We retain your data for as long as your account is active or as needed to provide the Service. You can request account deletion through your profile settings; deletion may remove your access to stored entries and cannot be undone.</p>
+
+          <h3 class="terms-heading">7. Termination</h3>
+          <p>We may suspend or terminate accounts that violate these Terms or applicable law. Upon termination we may delete or anonymize associated data in accordance with our policies.</p>
+
+          <h3 class="terms-heading">8. Disclaimers and Limitation of Liability</h3>
+          <p>The Service is provided &quot;as is&quot; and &quot;as available&quot; without warranties of any kind. We are not liable for any direct, indirect, incidental, special, or consequential damages arising from your use of the Service, to the extent permitted by law.</p>
+
+          <h3 class="terms-heading">9. Changes to the Terms</h3>
+          <p>We may update these Terms from time to time. When changes are material we will provide notice by posting them on the site or via email. Continued use of the Service after changes indicates acceptance of the new Terms.</p>
+
+          <h3 class="terms-heading">10. Governing Law</h3>
+          <p>These Terms are governed by the laws of the jurisdiction where the Service provider is located, unless otherwise required by law.</p>
+
+          
+        </div>
+      </div>
+      <div class="modal-footer">
+        <div class="modal-accept-row">
+          <div class="modal-accept-left">
+            <input type="checkbox" id="agree-modal" />
+            <label for="agree-modal" class="modal-accept-label">I have read and accept the Terms of Service</label>
+            <div id="terms-status" class="terms-status" aria-live="polite" style="margin-left:12px;font-size:13px;color:var(--muted);"></div>
+          </div>
+          <div class="modal-accept-actions">
+            <button class="btn btn-secondary" id="close-terms-cancel" type="button">Close</button>
+            <button class="btn btn-primary" id="accept-terms-btn" type="button">Confirm</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
   <script>
     // Signup handler
     document.getElementById('signup-form').addEventListener('submit', async (e) => {
@@ -100,6 +167,22 @@
       const errorDiv = document.getElementById('error-message');
       
       errorDiv.style.display = 'none';
+      // Ensure terms are accepted (checkbox is inside the Terms modal)
+      // Ensure terms are accepted (in-memory confirmation via Confirm button)
+      if (!window.termsConfirmed) {
+        errorDiv.textContent = 'You must read and accept the Terms of Service to create an account.';
+        errorDiv.style.display = 'block';
+        // open the terms modal to prompt the user
+        const termsModal = document.getElementById('terms-modal');
+        if (termsModal) {
+          termsModal.classList.add('show');
+          termsModal.removeAttribute('aria-hidden');
+          // move focus to confirm button so keyboard users can act quickly
+          const focusTarget = termsModal.querySelector('#accept-terms-btn');
+          if (focusTarget) focusTarget.focus();
+        }
+        return;
+      }
       
       // Validate passwords match
       if (password !== confirmPassword) {
@@ -144,6 +227,91 @@
         pw.focus();
       });
     }
+
+    // Terms modal open/close
+    const termsLink = document.getElementById('terms-link');
+    const termsModal = document.getElementById('terms-modal');
+    const closeTerms = document.getElementById('close-terms-modal');
+    const closeTermsCancel = document.getElementById('close-terms-cancel');
+      const acceptTermsBtn = document.getElementById('accept-terms-btn');
+      const agreeModal = document.getElementById('agree-modal');
+      // Use in-memory flag (no persistence) to track confirmed acceptance
+      let termsConfirmed = false;
+      // expose to window for other handlers to read
+      window.termsConfirmed = termsConfirmed;
+      function updateTermsStatus() {
+        const statusEl = document.getElementById('terms-status');
+        if (!statusEl) return;
+        if (termsConfirmed) {
+          statusEl.textContent = 'Accepted';
+          statusEl.style.background = 'linear-gradient(90deg, rgba(102,126,234,0.12), rgba(118,75,162,0.08))';
+        } else {
+          statusEl.textContent = '';
+          statusEl.style.background = '#f6f7fb';
+        }
+      }
+
+      function updateSignupBadge() {
+        const badge = document.getElementById('signup-terms-badge');
+        if (!badge) return;
+        if (termsConfirmed) {
+          badge.textContent = 'Accepted';
+          badge.classList.add('badge-accepted');
+          badge.classList.remove('badge-not');
+          badge.setAttribute('aria-hidden','false');
+        } else {
+          badge.textContent = '';
+          badge.classList.remove('badge-accepted');
+          badge.classList.add('badge-not');
+          badge.setAttribute('aria-hidden','true');
+        }
+      }
+
+      if (termsLink && termsModal) {
+            termsLink.addEventListener('click', (e) => {
+              e.preventDefault();
+              // When opening modal, reflect in-memory acceptance in checkbox/status
+              document.getElementById('agree-modal').checked = !!termsConfirmed;
+              updateTermsStatus();
+              termsModal.classList.add('show');
+              termsModal.removeAttribute('aria-hidden');
+              const focusTarget = termsModal.querySelector('#accept-terms-btn');
+              if (focusTarget) focusTarget.focus();
+            });
+          }
+          if (closeTerms) closeTerms.addEventListener('click', () => { termsModal.classList.remove('show'); termsModal.setAttribute('aria-hidden','true'); termsLink && termsLink.focus(); });
+          if (closeTermsCancel) closeTermsCancel.addEventListener('click', () => { termsModal.classList.remove('show'); termsModal.setAttribute('aria-hidden','true'); termsLink && termsLink.focus(); });
+          if (termsModal) {
+            termsModal.addEventListener('click', (e) => { if (e.target.id === 'terms-modal') { termsModal.classList.remove('show'); termsModal.setAttribute('aria-hidden','true'); termsLink && termsLink.focus(); } });
+          }
+          if (acceptTermsBtn && agreeModal && termsModal) {
+            acceptTermsBtn.addEventListener('click', () => {
+              // Confirm button finalizes acceptance state in-memory only
+              if (agreeModal.checked) {
+                termsConfirmed = true;
+                updateTermsStatus();
+                updateSignupBadge();
+                window.termsConfirmed = true;
+                // show a brief visual confirmation then close
+                const prev = acceptTermsBtn.textContent;
+                acceptTermsBtn.textContent = 'Confirmed';
+                setTimeout(() => { acceptTermsBtn.textContent = prev; termsModal.classList.remove('show'); termsModal.setAttribute('aria-hidden','true'); termsLink && termsLink.focus(); }, 700);
+              } else {
+                // If unchecked and user confirms, we clear the in-memory acceptance and keep modal open
+                termsConfirmed = false;
+                updateTermsStatus();
+                updateSignupBadge();
+                window.termsConfirmed = false;
+                const statusEl = document.getElementById('terms-status');
+                if (statusEl) {
+                  statusEl.textContent = 'You have not accepted the Terms. Check the box to accept.';
+                }
+                agreeModal.focus();
+              }
+            });
+          }
+
+    // (Terms checkbox validation handled in the form submit handler above)
   </script>
 </body>
 </html>
